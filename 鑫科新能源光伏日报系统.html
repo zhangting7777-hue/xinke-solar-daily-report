@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鑫科新能源 · 光伏分布式项目日报系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif;
+            background: #f5f8fc;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        .header-banner {
+            background: linear-gradient(135deg, #0C447C 0%, #1a5a9a 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(12, 68, 124, 0.3);
+        }
+        .header-banner h1 { font-size: 24px; margin-bottom: 5px; font-weight: 700; }
+        .header-banner p { opacity: 0.9; font-size: 14px; }
+        .main-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+        .form-area { flex: 1; min-width: 0; }
+        .control-panel { width: 260px; flex-shrink: 0; position: sticky; top: 20px; }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1D9E75;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0C447C;
+        }
+        .btn-add {
+            padding: 6px 12px;
+            background: #1D9E75;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-add:hover { background: #158a60; }
+        .btn-edit {
+            padding: 4px 10px;
+            background: #0C447C;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-right: 6px;
+        }
+        .btn-delete {
+            padding: 4px 10px;
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0C447C;
+            margin-bottom: 5px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #dde4ed;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1D9E75;
+        }
+        .project-select {
+            padding: 12px;
+            border: 2px solid #dde4ed;
+            border-radius: 8px;
+            background: #fafbfc;
+            margin-bottom: 15px;
+        }
+        .project-select select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dde4ed;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+        .progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .progress-item {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e8eef5;
+        }
+        .progress-item label {
+            display: block;
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .progress-item .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .progress-item input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: #e0e7ee;
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+        .progress-item input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #1D9E75;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .progress-item .progress-value {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 700;
+            color: #0C447C;
+            font-size: 13px;
+        }
+        .btn-generate {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1D9E75 0%, #158a60 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-download {
+            width: 100%;
+            padding: 12px;
+            background: #0C447C;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+        .status-box {
+            padding: 12px;
+            background: #f0f9f6;
+            border-radius: 8px;
+            border-left: 4px solid #1D9E75;
+            font-size: 12px;
+            color: #555;
+        }
+        .image-upload-area {
+            border: 2px dashed #1D9E75;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 10px;
+            background: #f0faf6;
+            transition: all 0.2s;
+        }
+        .image-upload-area:hover { background: #e6f7f0; border-color: #158a60; }
+        .image-upload-icon { font-size: 48px; color: #1D9E75; margin-bottom: 10px; }
+        .image-upload-text { color: #555; font-size: 14px; font-weight: 500; }
+        #image-preview { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+        .preview-item { position: relative; width: 120px; height: 120px; }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid #1D9E75; }
+        .preview-item .remove-btn {
+            position: absolute; top: -8px; right: -8px; width: 24px; height: 24px;
+            background: #ff4444; color: white; border: none; border-radius: 50%;
+            font-size: 14px; cursor: pointer; line-height: 24px; text-align: center;
+        }
+        .image-count { margin-top: 12px; font-size: 13px; color: #555; font-weight: 500; }
+        .overall-stat {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            border-left: 4px solid #0C447C;
+            font-size: 13px;
+        }
+        .overall-stat span { font-weight: 700; color: #1D9E75; font-size: 18px; }
+        .project-list { margin-bottom: 15px; }
+        .project-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #e8eef5;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: #fafbfc;
+        }
+        .project-item:hover { background: #f0f4f8; }
+        .project-item-info { flex: 1; }
+        .project-item-name { font-size: 14px; font-weight: 600; color: #333; }
+        .project-item-addr { font-size: 12px; color: #666; margin-top: 2px; }
+        .project-item-actions { display: flex; gap: 6px; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1D9E75;
+        }
+        .modal-title { font-size: 16px; font-weight: 700; color: #0C447C; }
+        .modal-close {
+            width: 30px; height: 30px;
+            background: #ff4d4f; color: white;
+            border: none; border-radius: 50%;
+            font-size: 18px; cursor: pointer;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .btn-save {
+            padding: 10px 24px;
+            background: #1D9E75;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-cancel {
+            padding: 10px 24px;
+            background: #999;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        @media (max-width: 900px) {
+            .main-wrapper { flex-direction: column; }
+            .control-panel { width: 100%; position: static; }
+            .form-grid { grid-template-columns: 1fr; }
+            .progress-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-banner">
+            <h1>📋 鑫科新能源 · 光伏分布式项目日报系统</h1>
+            <p>工程标准化协同工具 | 智能环境自适应</p>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="form-area">
+                <!-- 项目管理 -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">项目列表</div>
+                        <button class="btn-add" onclick="openProjectModal()">+ 添加项目</button>
+                    </div>
+                    <div class="project-list" id="project-list"></div>
+                </div>
+
+                <!-- 基础台账信息 -->
+                <div class="card">
+                    <div class="card-title">一、基础台账信息</div>
+                    <div class="project-select">
+                        <select id="project-select" onchange="selectProject()">
+                            <option value="">-- 请选择项目 --</option>
+                        </select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>项目工程名称</label>
+                            <input type="text" id="project_name" placeholder="请输入项目工程名称">
+                        </div>
+                        <div class="form-group">
+                            <label>项目工程建设地址</label>
+                            <input type="text" id="address" placeholder="请输入项目工程建设地址">
+                        </div>
+                        <div class="form-group">
+                            <label>填报工作日期</label>
+                            <input type="date" id="date_val">
+                        </div>
+                        <div class="form-group">
+                            <label>现场天气概况</label>
+                            <select id="weather">
+                                <option value="晴">晴</option>
+                                <option value="多云">多云</option>
+                                <option value="阴">阴</option>
+                                <option value="阵雨">阵雨</option>
+                                <option value="雷阵雨">雷阵雨</option>
+                                <option value="小雨">小雨</option>
+                                <option value="中大雨">中大雨</option>
+                                <option value="大风/台风">大风/台风</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>当日驻场人员/班组</label>
+                            <input type="text" id="workers" value="施工队8人，电工2人">
+                        </div>
+                        <div class="form-group">
+                            <label>填报人</label>
+                            <input type="text" id="reporter" value="张工程">
+                        </div>
+                        <div class="form-group">
+                            <label>报告编号</label>
+                            <input type="text" id="report_no" value="XKNE-2024-0615-001">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 14项标准施工工序节点 -->
+                <div class="card">
+                    <div class="card-title">二、14项标准施工工序节点</div>
+                    <div class="progress-grid" id="progress-grid"></div>
+                    <div class="overall-stat">
+                        项目整体完成率：<span id="total-progress">0%</span>
+                    </div>
+                </div>
+
+                <!-- 今日核心施工记事 -->
+                <div class="card">
+                    <div class="card-title">三、今日核心施工记事</div>
+                    <div class="form-group">
+                        <textarea id="today_work" rows="4" placeholder="请输入今日主要施工内容..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 现场问题与风险反馈 -->
+                <div class="card">
+                    <div class="card-title">四、现场问题与风险反馈</div>
+                    <div class="form-group">
+                        <textarea id="issues" rows="3" placeholder="记录现场问题、需要协调事项、安全隐患等..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 质量安全检查记录 -->
+                <div class="card">
+                    <div class="card-title">五、质量安全检查记录</div>
+                    <div class="form-group">
+                        <textarea id="quality" rows="3" placeholder="记录当日安全巡检、隐蔽工程验收、质量检查情况..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 高精施工实拍图片集 -->
+                <div class="card">
+                    <div class="card-title">六、高精施工实拍图片集（可多选，最多20张）</div>
+                    <div class="image-upload-area" onclick="document.getElementById('images').click()">
+                        <input type="file" id="images" accept="image/*" multiple onchange="handleImages(this)">
+                        <div class="image-upload-icon">📷</div>
+                        <div class="image-upload-text">点击选择或拖拽现场照片到这里（支持多选）</div>
+                    </div>
+                    <div id="image-preview"></div>
+                    <div class="image-count" id="image-count">已选择 0 张图片</div>
+                </div>
+            </div>
+
+            <!-- 右侧控制面板 -->
+            <div class="control-panel">
+                <div class="card">
+                    <div class="card-title">报告编译控制台</div>
+                    <div class="status-box">
+                        🎨 字体引擎就绪，当前采用系统默认中文字体
+                    </div>
+                    <button class="btn-generate" id="generate-btn" onclick="generatePDF()">🚀 生成日报 PDF</button>
+                    <button class="btn-download" id="download-btn" onclick="downloadPDF()">📥 下载 PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目编辑弹窗 -->
+    <div class="modal" id="project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">添加项目</div>
+                <button class="modal-close" onclick="closeProjectModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>项目工程名称</label>
+                <input type="text" id="modal-project-name" placeholder="请输入项目工程名称">
+            </div>
+            <div class="form-group">
+                <label>项目工程建设地址</label>
+                <input type="text" id="modal-address" placeholder="请输入项目工程建设地址">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeProjectModal()">取消</button>
+                <button class="btn-save" onclick="saveProject()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-render-area" style="position:absolute;left:-9999px;top:0;background:white;"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+    (function() {
+        const WORK_ITEMS = [
+            "光伏组件等设备材料到货卸货二次搬运",
+            "图纸尺寸核对，屋面定位",
+            "保温层开槽（保温层、瓷砖等）",
+            "安装支架底座",
+            "支架安装(立柱-大梁-檩条)",
+            "彩钢瓦安装(夹具-导轨-检修踏板)",
+            "水槽安装 (M水槽-中担板)",
+            "组件安装（防雷刺片，导尘夹）",
+            "设备挂装 (逆变器-并网柜-防孤岛)",
+            "设备线路连接（直流线-交流线-通讯线）",
+            "挂牌（电缆挂牌-设备命名-开关命名-并网电气图）",
+            "安全标识挂牌（支架-线槽-设备）",
+            "屋面卫生清理",
+            "并网验收"
+        ];
+
+        let projects = [];
+        let currentProjectId = null;
+        let currentProjectIdx = -1;
+        let selectedImages = [];
+        let imageDataUrls = [];
+        let generatedPDFBlob = null;
+        let editingProjectId = null;
+
+        // 初始化
+        function init() {
+            loadProjects();
+            initProgressSliders();
+            document.getElementById('date_val').valueAsDate = new Date();
+        }
+
+        // 加载项目
+        function loadProjects() {
+            try {
+                const saved = localStorage.getItem('xinke_projects');
+                projects = saved ? JSON.parse(saved) : [];
+            } catch(e) {
+                projects = [];
+            }
+
+            // 添加示例项目（如果没有项目）
+            if (projects.length === 0) {
+                projects = [
+                    { id: '1', name: '江城工业园区4MW分布式光伏电站项目', address: '福建省福州市仓山区' },
+                    { id: '2', name: '厦门杏林湾光伏发电项目', address: '福建省厦门市集美区' }
+                ];
+                saveProjects();
+            }
+
+            renderProjectList();
+            renderProjectSelect();
+        }
+
+        // 保存项目
+        function saveProjects() {
+            localStorage.setItem('xinke_projects', JSON.stringify(projects));
+        }
+
+        // 渲染项目列表
+        function renderProjectList() {
+            const list = document.getElementById('project-list');
+            if (projects.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">暂无项目，请点击"添加项目"创建</div>';
+                return;
+            }
+            list.innerHTML = projects.map(p => `
+                <div class="project-item">
+                    <div class="project-item-info">
+                        <div class="project-item-name">${p.name}</div>
+                        <div class="project-item-addr">${p.address}</div>
+                    </div>
+                    <div class="project-item-actions">
+                        <button class="btn-edit" onclick="editProject('${p.id}')">编辑</button>
+                        <button class="btn-delete" onclick="deleteProject('${p.id}')">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 渲染项目下拉选择
+        function renderProjectSelect() {
+            const select = document.getElementById('project-select');
+            select.innerHTML = '<option value="">-- 请选择项目 --</option>' +
+                projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        // 选择项目
+        function selectProject() {
+            const id = document.getElementById('project-select').value;
+            if (!id) {
+                currentProjectId = null;
+                currentProjectIdx = -1;
+                return;
+            }
+            currentProjectId = String(id);
+            currentProjectIdx = projects.findIndex(p => String(p.id) === String(id));
+            if (currentProjectIdx >= 0) {
+                const p = projects[currentProjectIdx];
+                document.getElementById('project_name').value = p.name;
+                document.getElementById('address').value = p.address;
+            }
+        }
+
+        // 打开项目弹窗
+        function openProjectModal(id) {
+            // 统一转为字符串处理，解决数字ID与字符串id的类型比较问题
+            editingProjectId = String(id);
+            const modal = document.getElementById('project-modal');
+            const pid = String(id);
+            if (pid && pid !== 'null' && pid !== 'undefined') {
+                const p = projects.find(p => String(p.id) === pid);
+                if (p) {
+                    document.getElementById('modal-title').textContent = '编辑项目';
+                    document.getElementById('modal-project-name').value = p.name;
+                    document.getElementById('modal-address').value = p.address;
+                    modal.classList.add('show');
+                    return;
+                }
+            }
+            document.getElementById('modal-title').textContent = '添加项目';
+            document.getElementById('modal-project-name').value = '';
+            document.getElementById('modal-address').value = '';
+            modal.classList.add('show');
+        }
+
+        // 关闭项目弹窗
+        function closeProjectModal() {
+            document.getElementById('project-modal').classList.remove('show');
+            editingProjectId = null;
+        }
+
+        // 保存项目
+        function saveProject() {
+            const name = document.getElementById('modal-project-name').value.trim();
+            const address = document.getElementById('modal-address').value.trim();
+
+            if (!name) {
+                alert('请输入项目名称');
+                return;
+            }
+
+            if (editingProjectId) {
+                const idx = projects.findIndex(p => String(p.id) === String(editingProjectId));
+                if (idx >= 0) {
+                    projects[idx].name = name;
+                    projects[idx].address = address;
+                }
+            } else {
+                projects.push({
+                    id: 'p' + Date.now(),
+                    name: name,
+                    address: address || '未填写'
+                });
+            }
+
+            saveProjects();
+            renderProjectList();
+            renderProjectSelect();
+            closeProjectModal();
+        }
+
+        // 编辑项目
+        function editProject(id) {
+            openProjectModal(id);
+        }
+
+        // 删除项目
+        function deleteProject(id) {
+            if (!confirm('确定要删除这个项目吗？')) return;
+            const pid = String(id);
+            projects = projects.filter(p => String(p.id) !== pid);
+            saveProjects();
+            renderProjectList();
+            renderProjectSelect();
+            if (String(currentProjectId) === pid) {
+                currentProjectId = null;
+                currentProjectIdx = -1;
+                document.getElementById('project_name').value = '';
+                document.getElementById('address').value = '';
+            }
+        }
+
+        // 初始化进度滑块
+        function initProgressSliders() {
+            const grid = document.getElementById('progress-grid');
+            grid.innerHTML = '';
+            WORK_ITEMS.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'progress-item';
+                div.innerHTML = '<label>[' + (idx + 1) + '] ' + item + '</label>' +
+                    '<div class="slider-row">' +
+                    '<input type="range" min="0" max="100" step="5" value="0" ' +
+                    'oninput="updateProgress(' + idx + ', this.value)">' +
+                    '<span class="progress-value" id="progress-val-' + idx + '">0%</span>' +
+                    '</div>';
+                grid.appendChild(div);
+            });
+        }
+
+        window.updateProgress = function(idx, val) {
+            document.getElementById('progress-val-' + idx).textContent = val + '%';
+            updateTotalProgress();
+        };
+
+        function updateTotalProgress() {
+            const sliders = document.querySelectorAll('#progress-grid input[type="range"]');
+            let total = 0;
+            sliders.forEach(s => total += parseInt(s.value));
+            const avg = Math.round(total / sliders.length);
+            document.getElementById('total-progress').textContent = avg + '%';
+        }
+
+        window.handleImages = function(input) {
+            if (input.files) {
+                Array.from(input.files).forEach((file) => {
+                    if (selectedImages.length < 20) {
+                        selectedImages.push(file);
+                    }
+                });
+            }
+            renderImagePreview();
+        };
+
+        function renderImagePreview() {
+            const preview = document.getElementById('image-preview');
+            preview.innerHTML = '';
+            imageDataUrls = [];
+
+            selectedImages.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imageDataUrls[idx] = e.target.result;
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = '<img src="' + e.target.result + '">' +
+                        '<button class="remove-btn" onclick="removeImage(' + idx + ')">×</button>';
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('image-count').textContent = '已选择 ' + selectedImages.length + ' 张图片';
+        }
+
+        window.removeImage = function(idx) {
+            selectedImages.splice(idx, 1);
+            imageDataUrls.splice(idx, 1);
+            renderImagePreview();
+        };
+
+        function getProgressList() {
+            const sliders = document.querySelectorAll('#progress-grid input[type="range"]');
+            return Array.from(sliders).map(s => parseInt(s.value));
+        }
+
+        window.generatePDF = function() {
+            if (!currentProjectId) {
+                alert('请先选择项目！');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ 生成中...';
+
+            setTimeout(async function() {
+                try {
+                    const basicInfo = {
+                        date: document.getElementById('date_val').value,
+                        project_name: document.getElementById('project_name').value,
+                        address: document.getElementById('address').value,
+                        weather: document.getElementById('weather').value,
+                        workers: document.getElementById('workers').value,
+                        reporter: document.getElementById('reporter').value,
+                        report_no: document.getElementById('report_no').value
+                    };
+                    const progressList = getProgressList();
+                    const todayWork = document.getElementById('today_work').value;
+                    const issues = document.getElementById('issues').value;
+                    const quality = document.getElementById('quality').value;
+
+                    const totalProgress = Math.round(progressList.reduce((a, b) => a + b, 0) / progressList.length);
+
+                    let tableRows = '';
+                    progressList.forEach((progress, idx) => {
+                        const item = WORK_ITEMS[idx];
+                        let statusText = '0%';
+                        let statusColor = '#999';
+                        if (progress === 100) {
+                            statusText = '100% (已完工)';
+                            statusColor = '#1D9E75';
+                        } else if (progress > 0) {
+                            statusText = progress + '%';
+                            statusColor = '#0C447C';
+                        }
+                        tableRows += '<tr>' +
+                            '<td style="text-align:center;padding:5px 4px;border:1px solid #ddd;font-size:10px;background:#f8fafc;">' + (idx + 1) + '</td>' +
+                            '<td style="padding:5px 4px;border:1px solid #ddd;font-size:10px;">' + item + '</td>' +
+                            '<td style="text-align:center;padding:5px 4px;border:1px solid #ddd;font-size:10px;color:' + statusColor + ';font-weight:bold;">' + statusText + '</td>' +
+                            '</tr>';
+                    });
+
+                    let imagesHTML = '';
+                    if (imageDataUrls.length > 0) {
+                        const imgThumbs = imageDataUrls.map(function(dataUrl) {
+                            return '<img src="' + dataUrl + '" style="width:68px;height:50px;object-fit:cover;border:1px solid #ccc;border-radius:3px;" />';
+                        }).join('');
+                        imagesHTML = '<div style="margin-top:10px;">' +
+                            '<div style="font-size:11px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:4px;margin-bottom:6px;">三、施工现场实拍影像记录</div>' +
+                            '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + imgThumbs + '</div></div>';
+                    }
+
+                    const pdfRenderArea = document.getElementById('pdf-render-area');
+                    pdfRenderArea.innerHTML = '<div style="width:1050px;min-height:750px;padding:30px;font-family:\'Microsoft YaHei\',sans-serif;font-size:12px;color:#333;background:white;">' +
+                        '<div style="background:#0C447C;color:white;padding:20px 25px;margin:-30px -30px 15px -30px;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div style="display:flex;align-items:center;gap:15px;">' +
+                        '<div style="background:white;color:#0C447C;padding:8px 15px;font-weight:700;border-radius:5px;font-size:16px;">XKNE</div>' +
+                        '<div><div style="font-weight:700;font-size:20px;">鑫科新能源</div><div style="font-size:12px;opacity:0.85;">分布式光伏发电项目</div></div>' +
+                        '</div>' +
+                        '<div style="text-align:right;"><div style="font-size:26px;font-weight:700;">施工进度日报</div><div style="font-size:11px;opacity:0.85;">报告编号：' + basicInfo.report_no + '</div></div>' +
+                        '</div></div>' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:10px 15px;background:#f0f7ff;border-radius:6px;border-left:4px solid #1D9E75;">' +
+                        '<div style="display:flex;gap:25px;font-size:12px;">' +
+                        '<span><span style="font-weight:700;color:#0C447C;">填报日期：</span>' + basicInfo.date + '</span>' +
+                        '<span><span style="font-weight:700;color:#0C447C;">填报人：</span>' + basicInfo.reporter + '</span>' +
+                        '<span><span style="font-weight:700;color:#0C447C;">项目整体进度：</span><span style="font-weight:700;color:#1D9E75;font-size:16px;">' + totalProgress + '%</span></span>' +
+                        '</div></div>' +
+                        '<div style="background:#f5f8fc;padding:12px 15px;border-radius:6px;margin-bottom:12px;">' +
+                        '<div style="display:flex;flex-wrap:wrap;gap:20px;font-size:12px;">' +
+                        '<span><span style="font-weight:700;color:#0C447C;">项目名称：</span>' + basicInfo.project_name + '</span>' +
+                        '<span><span style="font-weight:700;color:#0C447C;">项目地址：</span>' + basicInfo.address + '</span>' +
+                        '<span><span style="font-weight:700;color:#0C447C;">现场天气：</span>' + basicInfo.weather + '</span>' +
+                        '<span><span style="font-weight:700;color:#0C447C;">现场人员：</span>' + basicInfo.workers + '</span>' +
+                        '</div></div>' +
+                        '<div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">一、分项施工进度明细清单</div>' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:8px 6px;text-align:center;font-weight:600;width:45px;">序号</th><th style="padding:8px 6px;text-align:left;font-weight:600;">标准施工工序内容说明</th><th style="padding:8px 6px;text-align:center;font-weight:600;width:110px;">当前累计完成进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>' +
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
+                        '<div><div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">二、今日现场核心施工记事</div><div style="background:#fafbfc;padding:12px;border-radius:6px;min-height:70px;white-space:pre-line;font-size:11px;line-height:1.8;">' + todayWork + '</div></div>' +
+                        '<div><div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">三、现场问题与风险反馈</div><div style="background:#fff5f5;padding:12px;border-radius:6px;min-height:70px;white-space:pre-line;font-size:11px;line-height:1.8;border-left:4px solid #e74c3c;">' + issues + '</div></div>' +
+                        '</div>' +
+                        '<div style="margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">四、质量安全检查记录</div><div style="background:#f0fff4;padding:12px;border-radius:6px;white-space:pre-line;font-size:11px;line-height:1.8;border-left:4px solid #1D9E75;">' + quality + '</div></div>' +
+                        imagesHTML +
+                        '<div style="margin-top:20px;display:flex;gap:40px;padding-top:15px;border-top:1px solid #eee;">' +
+                        '<div style="flex:1;"><div style="border-bottom:1px solid #999;height:35px;margin-bottom:5px;"></div><div style="font-size:11px;color:#888;">项目经理审核签字：___________ 日期：______年____月____日</div></div>' +
+                        '<div style="flex:1;"><div style="border-bottom:1px solid #999;height:35px;margin-bottom:5px;"></div><div style="font-size:11px;color:#888;">业主/监理单位确认签字：___________ 日期：______年____月____日</div></div>' +
+                        '<div style="flex:1;"><div style="border-bottom:1px solid #999;height:35px;margin-bottom:5px;"></div><div style="font-size:11px;color:#888;">施工班组长确认签字：___________ 日期：______年____月____日</div></div>' +
+                        '</div>' +
+                        '<div style="margin-top:15px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#888;text-align:center;">鑫科新能源 · 工程施工日报 | 福州中心：建新北路奋安中心 | 厦门中心：杏林湾运营中心</div>' +
+                        '</div>';
+
+                    pdfRenderArea.style.width = '1050px';
+
+                    await new Promise(resolve => setTimeout(resolve, 800));
+
+                    const canvas = await html2canvas(pdfRenderArea, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff'
+                    });
+
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+                    generatedPDFBlob = pdf.output('blob');
+                    document.getElementById('download-btn').style.display = 'block';
+                    alert('PDF生成成功！点击"下载 PDF"按钮保存报告。');
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('生成PDF时出错：' + error.message);
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = '🚀 生成日报 PDF';
+                }
+            }, 100);
+        };
+
+        window.downloadPDF = function() {
+            if (generatedPDFBlob) {
+                const projectName = document.getElementById('project_name').value || '项目';
+                const dateVal = document.getElementById('date_val').value;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(generatedPDFBlob);
+                link.download = '鑫科新能源_' + projectName + '_施工日报_' + dateVal + '.pdf';
+                link.click();
+            }
+        };
+
+        init();
+
+        // 暴露项目操作函数到全局作用域，供HTML onclick调用
+        window.openProjectModal = openProjectModal;
+        window.closeProjectModal = closeProjectModal;
+        window.saveProject = saveProject;
+        window.editProject = editProject;
+        window.deleteProject = deleteProject;
+        window.selectProject = selectProject;
+        window.updateProgress = updateProgress;
+        window.handleImages = handleImages;
+        window.removeImage = removeImage;
+        window.generatePDF = generatePDF;
+        window.downloadPDF = downloadPDF;
+    })();
+    </script>
+</body>
+</html>
