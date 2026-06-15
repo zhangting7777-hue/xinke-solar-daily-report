@@ -797,13 +797,11 @@
 
                     let imagesHTML = '';
                     if (imageDataUrls.length > 0) {
-                        // 图片单独处理，不放在html中让html2canvas渲染
-                        // 而是在PDF生成后直接用jsPDF绘制
                         imagesHTML = '<div id="pdf-images-placeholder" style="display:none;"></div>';
                     }
 
                     const pdfRenderArea = document.getElementById('pdf-render-area');
-                    pdfRenderArea.innerHTML = '<div style="width:780px;min-height:1150px;padding:30px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
+                    pdfRenderArea.innerHTML = '<div id="pdf-content-wrapper" style="width:780px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
                         '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:22px 25px;margin:-30px -30px 15px -30px;border-radius:8px 8px 0 0;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
                         '<div style="display:flex;align-items:center;gap:15px;">' +
@@ -836,7 +834,7 @@
                         '<div style="margin-top:15px;padding-top:10px;border-top:2px solid #ddd;font-size:10px;color:#888;text-align:center;font-weight:500;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
                         '</div>';
 
-                    // 预先渲染图片缩略图到占位区域（用于html2canvas捕获）
+                    // 预先渲染图片缩略图到占位区域
                     const imageGrid = document.getElementById('pdf-image-grid');
                     if (imageDataUrls.length > 0) {
                         imageDataUrls.forEach(function(dataUrl) {
@@ -852,7 +850,7 @@
                     await new Promise(resolve => setTimeout(resolve, 2000));
 
                     const canvas = await html2canvas(pdfRenderArea, {
-                        scale: 3,
+                        scale: 2,
                         useCORS: true,
                         logging: false,
                         allowTaint: false,
@@ -866,29 +864,47 @@
                         format: 'a4'
                     });
 
-                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                    // 计算内容高度，决定是否需要多页
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
-
                     const canvasWidth = canvas.width;
                     const canvasHeight = canvas.height;
-                    const imgAspect = canvasWidth / canvasHeight;
-                    const pdfAspect = pdfWidth / pdfHeight;
 
-                    let drawWidth, drawHeight, drawX, drawY;
-                    if (imgAspect > pdfAspect) {
-                        drawHeight = pdfHeight;
-                        drawWidth = pdfHeight * imgAspect;
-                        drawX = 0;
-                        drawY = 0;
+                    // A4像素尺寸（scale=2时，780px对应约210mm）
+                    const contentRatio = canvasHeight / canvasWidth;
+                    const contentHeightMm = pdfWidth * contentRatio;
+
+                    if (contentHeightMm <= pdfHeight) {
+                        // 单页
+                        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                     } else {
-                        drawWidth = pdfWidth;
-                        drawHeight = pdfWidth / imgAspect;
-                        drawX = 0;
-                        drawY = 0;
-                    }
+                        // 多页 - 计算需要几页
+                        const pages = Math.ceil(contentHeightMm / pdfHeight);
+                        const pageHeightPx = canvasHeight / pages;
 
-                    pdf.addImage(imgData, 'JPEG', drawX, drawY, drawWidth, drawHeight);
+                        for (let i = 0; i < pages; i++) {
+                            if (i > 0) {
+                                pdf.addPage();
+                            }
+                            // 裁剪当前页的内容
+                            const pageCanvas = document.createElement('canvas');
+                            const ctx = pageCanvas.getContext('2d');
+                            const scaledWidth = canvasWidth;
+                            const scaledHeight = pageHeightPx;
+                            pageCanvas.width = scaledWidth;
+                            pageCanvas.height = scaledHeight;
+
+                            ctx.drawImage(
+                                canvas,
+                                0, i * pageHeightPx, scaledWidth, scaledHeight,
+                                0, 0, scaledWidth, scaledHeight
+                            );
+
+                            const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+                            pdf.addImage(pageImgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                        }
+                    }
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
