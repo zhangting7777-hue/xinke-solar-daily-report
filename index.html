@@ -840,14 +840,27 @@
 
                     pdfRenderArea.style.width = '780px';
 
-                    await new Promise(resolve => setTimeout(resolve, 800));
+                    await new Promise(resolve => setTimeout(resolve, 1500));
 
                     const canvas = await html2canvas(pdfRenderArea, {
                         scale: 4,
                         useCORS: true,
                         logging: false,
                         allowTaint: true,
-                        backgroundColor: '#ffffff'
+                        backgroundColor: '#ffffff',
+                        imageTimeout: 15000,
+                        onclone: function(clonedDoc) {
+                            // 确保克隆文档中的图片完全加载
+                            const imgs = clonedDoc.getElementsByTagName('img');
+                            return Promise.all(Array.from(imgs).map(function(img) {
+                                if (img.complete) return Promise.resolve();
+                                return new Promise(function(resolve) {
+                                    img.onload = resolve;
+                                    img.onerror = resolve;
+                                    setTimeout(resolve, 5000); // 5秒超时保护
+                                });
+                            }));
+                        }
                     });
 
                     const { jsPDF } = window.jspdf;
@@ -857,7 +870,22 @@
                         format: 'a4'
                     });
 
-                    const imgData = canvas.toDataURL('image/png', 1.0);
+                    // 尝试使用 toBlob（部分移动浏览器对此更友好）
+                    let imgData;
+                    try {
+                        imgData = canvas.toDataURL('image/png', 1.0);
+                    } catch (e) {
+                        // 如果 toDataURL 失败（tainted canvas），使用 toBlob 然后转为 dataURL
+                        const blob = await new Promise(function(resolve) {
+                            canvas.toBlob(resolve, 'image/png', 1.0);
+                        });
+                        imgData = await new Promise(function(resolve) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) { resolve(e.target.result); };
+                            reader.readAsDataURL(blob);
+                        });
+                    }
+
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
 
