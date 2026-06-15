@@ -777,7 +777,7 @@
                     }
 
                     const pdfRenderArea = document.getElementById('pdf-render-area');
-                    pdfRenderArea.innerHTML = '<div style="width:750px;min-height:1100px;padding:30px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
+                    pdfRenderArea.innerHTML = '<div style="width:780px;min-height:1150px;padding:30px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
                         '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:22px 25px;margin:-30px -30px 15px -30px;border-radius:8px 8px 0 0;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
                         '<div style="display:flex;align-items:center;gap:15px;">' +
@@ -809,7 +809,7 @@
                         '<div style="margin-top:15px;padding-top:10px;border-top:2px solid #ddd;font-size:10px;color:#888;text-align:center;font-weight:500;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
                         '</div>';
 
-                    pdfRenderArea.style.width = '750px';
+                    pdfRenderArea.style.width = '780px';
 
                     await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -839,17 +839,18 @@
                     const pdfAspect = pdfWidth / pdfHeight;
 
                     let drawWidth, drawHeight, drawX, drawY;
+                    // 充满整个页面，不留白边
                     if (imgAspect > pdfAspect) {
-                        // 图片更宽，以宽度为准
+                        // 以高度为准，图片更扁
+                        drawHeight = pdfHeight;
+                        drawWidth = pdfHeight * imgAspect;
+                        drawX = 0;
+                        drawY = 0;
+                    } else {
+                        // 以宽度为准，图片更高
                         drawWidth = pdfWidth;
                         drawHeight = pdfWidth / imgAspect;
                         drawX = 0;
-                        drawY = (pdfHeight - drawHeight) / 2;
-                    } else {
-                        // 图片更高，以高度为准
-                        drawHeight = pdfHeight;
-                        drawWidth = pdfHeight * imgAspect;
-                        drawX = (pdfWidth - drawWidth) / 2;
                         drawY = 0;
                     }
 
