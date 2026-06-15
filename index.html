@@ -797,12 +797,9 @@
 
                     let imagesHTML = '';
                     if (imageDataUrls.length > 0) {
-                        const imgThumbs = imageDataUrls.map(function(dataUrl) {
-                            return '<img src="' + dataUrl + '" style="width:100px;height:75px;object-fit:cover;border:1px solid #ccc;border-radius:4px;" />';
-                        }).join('');
-                        imagesHTML = '<div style="margin-bottom:12px;">' +
-                            '<div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">五、施工现场实拍影像记录</div>' +
-                            '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + imgThumbs + '</div></div>';
+                        // 图片单独处理，不放在html中让html2canvas渲染
+                        // 而是在PDF生成后直接用jsPDF绘制
+                        imagesHTML = '<div id="pdf-images-placeholder" style="display:none;"></div>';
                     }
 
                     const pdfRenderArea = document.getElementById('pdf-render-area');
@@ -834,33 +831,32 @@
                         '<div><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #e74c3c;padding-bottom:5px;margin-bottom:6px;">三、现场问题与风险反馈</div><div style="background:#fff5f5;padding:12px;border-radius:8px;min-height:70px;white-space:pre-line;font-size:12px;line-height:1.8;font-weight:500;border-left:5px solid #e74c3c;">' + issues + '</div></div>' +
                         '</div>' +
                         '<div style="margin-bottom:12px;"><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #1D9E75;padding-bottom:5px;margin-bottom:6px;">四、质量安全检查记录</div><div style="background:#f0fff4;padding:12px;border-radius:8px;white-space:pre-line;font-size:12px;line-height:1.8;font-weight:500;border-left:5px solid #1D9E75;">' + quality + '</div></div>' +
-                        imagesHTML +
+                        '<div style="margin-bottom:12px;"><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #1D9E75;padding-bottom:5px;margin-bottom:8px;">五、施工现场实拍影像记录</div>' +
+                        '<div id="pdf-image-grid"></div></div>' +
                         '<div style="margin-top:15px;padding-top:10px;border-top:2px solid #ddd;font-size:10px;color:#888;text-align:center;font-weight:500;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
                         '</div>';
 
+                    // 预先渲染图片缩略图到占位区域（用于html2canvas捕获）
+                    const imageGrid = document.getElementById('pdf-image-grid');
+                    if (imageDataUrls.length > 0) {
+                        imageDataUrls.forEach(function(dataUrl) {
+                            const img = document.createElement('img');
+                            img.src = dataUrl;
+                            img.style.cssText = 'width:100px;height:75px;object-fit:cover;border:1px solid #ccc;border-radius:4px;margin:3px;';
+                            imageGrid.appendChild(img);
+                        });
+                    }
+
                     pdfRenderArea.style.width = '780px';
 
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
                     const canvas = await html2canvas(pdfRenderArea, {
-                        scale: 4,
+                        scale: 3,
                         useCORS: true,
                         logging: false,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        imageTimeout: 15000,
-                        onclone: function(clonedDoc) {
-                            // 确保克隆文档中的图片完全加载
-                            const imgs = clonedDoc.getElementsByTagName('img');
-                            return Promise.all(Array.from(imgs).map(function(img) {
-                                if (img.complete) return Promise.resolve();
-                                return new Promise(function(resolve) {
-                                    img.onload = resolve;
-                                    img.onerror = resolve;
-                                    setTimeout(resolve, 5000); // 5秒超时保护
-                                });
-                            }));
-                        }
+                        allowTaint: false,
+                        backgroundColor: '#ffffff'
                     });
 
                     const { jsPDF } = window.jspdf;
@@ -870,48 +866,29 @@
                         format: 'a4'
                     });
 
-                    // 尝试使用 toBlob（部分移动浏览器对此更友好）
-                    let imgData;
-                    try {
-                        imgData = canvas.toDataURL('image/png', 1.0);
-                    } catch (e) {
-                        // 如果 toDataURL 失败（tainted canvas），使用 toBlob 然后转为 dataURL
-                        const blob = await new Promise(function(resolve) {
-                            canvas.toBlob(resolve, 'image/png', 1.0);
-                        });
-                        imgData = await new Promise(function(resolve) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) { resolve(e.target.result); };
-                            reader.readAsDataURL(blob);
-                        });
-                    }
-
+                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-                    // 计算图片实际宽高比，避免压扁
                     const canvasWidth = canvas.width;
                     const canvasHeight = canvas.height;
                     const imgAspect = canvasWidth / canvasHeight;
                     const pdfAspect = pdfWidth / pdfHeight;
 
                     let drawWidth, drawHeight, drawX, drawY;
-                    // 充满整个页面，不留白边
                     if (imgAspect > pdfAspect) {
-                        // 以高度为准，图片更扁
                         drawHeight = pdfHeight;
                         drawWidth = pdfHeight * imgAspect;
                         drawX = 0;
                         drawY = 0;
                     } else {
-                        // 以宽度为准，图片更高
                         drawWidth = pdfWidth;
                         drawHeight = pdfWidth / imgAspect;
                         drawX = 0;
                         drawY = 0;
                     }
 
-                    pdf.addImage(imgData, 'PNG', drawX, drawY, drawWidth, drawHeight);
+                    pdf.addImage(imgData, 'JPEG', drawX, drawY, drawWidth, drawHeight);
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
