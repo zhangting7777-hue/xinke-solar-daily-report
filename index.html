@@ -795,92 +795,7 @@
                             '</tr>';
                     });
 
-                    let imagesHTML = '';
-                    if (imageDataUrls.length > 0) {
-                        imagesHTML = '<div id="pdf-images-placeholder" style="display:none;"></div>';
-                    }
-
-                    const pdfRenderArea = document.getElementById('pdf-render-area');
-                    pdfRenderArea.innerHTML = '<div id="pdf-content-wrapper" style="width:660px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
-
-                        // 头部
-                        '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:10px 12px;margin-bottom:6px;">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                        '<div style="display:flex;align-items:center;gap:8px;">' +
-                        '<div style="background:white;color:#0C447C;padding:3px 8px;font-weight:800;border-radius:3px;font-size:11px;letter-spacing:1px;">XKNE</div>' +
-                        '<div><div style="font-weight:800;font-size:14px;letter-spacing:1px;">鑫科新能源</div><div style="font-size:9px;opacity:0.9;">分布式光伏发电项目施工日报</div></div>' +
-                        '</div>' +
-                        '<div style="text-align:right;"><div style="font-size:17px;font-weight:800;letter-spacing:2px;">施工日报</div><div style="font-size:8px;opacity:0.85;margin-top:2px;">编号：' + basicInfo.report_no + '</div></div>' +
-                        '</div></div>' +
-
-                        // 顶部信息条
-                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;padding:4px 8px;background:#f0f7ff;border-radius:4px;border-left:3px solid #1D9E75;">' +
-                        '<span style="font-size:9px;font-weight:600;color:#0C447C;">填报日期：' + basicInfo.date + '</span>' +
-                        '<span style="font-size:9px;font-weight:600;color:#0C447C;">填报人：' + basicInfo.reporter + '</span>' +
-                        '<span style="font-size:9px;font-weight:600;color:#0C447C;">进度：<span style="font-weight:800;color:#1D9E75;font-size:12px;">' + totalProgress + '%</span></span>' +
-                        '</div>' +
-
-                        // 项目基本信息
-                        '<div style="background:#f5f8fc;padding:5px 8px;border-radius:4px;margin-bottom:5px;font-size:9px;">' +
-                        '<div style="font-weight:700;color:#0C447C;margin-bottom:2px;font-size:10px;">项目：' + basicInfo.project_name + '</div>' +
-                        '<div style="display:flex;flex-wrap:wrap;gap:10px;font-weight:500;color:#555;">' +
-                        '<span>天气：' + basicInfo.weather + '</span>' +
-                        '<span>人员：' + basicInfo.workers + '</span>' +
-                        '<span>地址：' + basicInfo.address + '</span>' +
-                        '</div></div>' +
-
-                        // 一、分项施工进度明细清单
-                        '<div style="margin-bottom:5px;"><div style="font-size:11px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:2px;margin-bottom:4px;">一、分项施工进度明细清单</div>' +
-                        '<table style="width:100%;border-collapse:collapse;font-size:8px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:3px 2px;text-align:center;font-weight:700;width:28px;">序号</th><th style="padding:3px 2px;text-align:left;font-weight:700;">标准施工工序内容说明</th><th style="padding:3px 2px;text-align:center;font-weight:700;width:50px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>' +
-
-                        // 二、今日现场核心施工记事
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">二、今日现场核心施工记事</div>' +
-                        '<div style="padding:5px;white-space:pre-line;font-size:8px;line-height:1.4;">' + todayWork + '</div></div>' +
-
-                        // 三、现场问题与风险反馈
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #e74c3c;">三、现场问题与风险反馈</div>' +
-                        '<div style="padding:5px;white-space:pre-line;font-size:8px;line-height:1.4;">' + issues + '</div></div>' +
-
-                        // 四、质量安全检查记录
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #1D9E75;">四、质量安全检查记录</div>' +
-                        '<div style="padding:5px;white-space:pre-line;font-size:8px;line-height:1.4;">' + quality + '</div></div>' +
-
-                        // 五、施工现场实拍影像记录
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">五、施工现场实拍影像记录</div>' +
-                        '<div id="pdf-image-grid" style="padding:5px;"></div></div>' +
-
-                        // 页脚
-                        '<div style="padding-top:4px;border-top:1px solid #ddd;font-size:7px;color:#888;text-align:center;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
-                        '</div>';
-
-                    // 预先渲染图片缩略图
-                    const imageGrid = document.getElementById('pdf-image-grid');
-                    if (imageDataUrls.length > 0) {
-                        imageDataUrls.forEach(function(dataUrl) {
-                            const img = document.createElement('img');
-                            img.src = dataUrl;
-                            img.style.cssText = 'width:65px;height:49px;object-fit:cover;border:1px solid #ccc;border-radius:2px;margin:2px;';
-                            imageGrid.appendChild(img);
-                        });
-                    } else {
-                        imageGrid.innerHTML = '<div style="color:#999;font-size:8px;padding:5px;">暂无上传图片</div>';
-                    }
-
-                    pdfRenderArea.style.width = '660px';
-
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                    const canvas = await html2canvas(pdfRenderArea, {
-                        scale: 3,
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: false,
-                        backgroundColor: '#ffffff'
-                    });
+                    // ===== 生成PDF - 分两部分渲染确保内容完整 =====
 
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF({
@@ -888,34 +803,77 @@
                         unit: 'mm',
                         format: 'a4'
                     });
-
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const canvasWidth = canvas.width;
-                    const canvasHeight = canvas.height;
 
-                    // 计算内容高度（像素）对应的PDF高度（mm）
-                    const contentHeightMm = (canvasHeight / canvasWidth) * pdfWidth;
-                    const pageCount = Math.ceil(contentHeightMm / pdfHeight);
+                    // ===== 第一部分：头部+信息+表格 =====
+                    const part1 = document.createElement('div');
+                    part1.style.cssText = 'width:660px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;padding:8px;';
+                    part1.innerHTML =
+                        '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:10px 12px;margin-bottom:6px;border-radius:4px;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                        '<div style="display:flex;align-items:center;gap:8px;">' +
+                        '<div style="background:white;color:#0C447C;padding:3px 8px;font-weight:800;border-radius:3px;font-size:11px;letter-spacing:1px;">XKNE</div>' +
+                        '<div><div style="font-weight:800;font-size:14px;letter-spacing:1px;">鑫科新能源</div><div style="font-size:9px;opacity:0.9;">分布式光伏发电项目施工日报</div></div>' +
+                        '</div>' +
+                        '<div style="text-align:right;"><div style="font-size:17px;font-weight:800;letter-spacing:2px;">施工日报</div><div style="font-size:8px;opacity:0.85;margin-top:2px;">编号：' + basicInfo.report_no + '</div></div>' +
+                        '</div></div>' +
+                        '<div style="display:flex;justify-content:space-between;margin-bottom:5px;padding:4px 8px;background:#f0f7ff;border-radius:4px;border-left:3px solid #1D9E75;font-size:9px;font-weight:600;color:#0C447C;">' +
+                        '<span>填报日期：' + basicInfo.date + '</span><span>填报人：' + basicInfo.reporter + '</span><span>进度：<span style="font-weight:800;color:#1D9E75;">' + totalProgress + '%</span></span></div>' +
+                        '<div style="background:#f5f8fc;padding:5px 8px;border-radius:4px;margin-bottom:5px;font-size:9px;">' +
+                        '<div style="font-weight:700;color:#0C447C;margin-bottom:2px;">项目：' + basicInfo.project_name + '</div>' +
+                        '<div style="display:flex;gap:10px;color:#555;">' +
+                        '<span>天气：' + basicInfo.weather + '</span><span>人员：' + basicInfo.workers + '</span><span>地址：' + basicInfo.address + '</span></div></div>' +
+                        '<div style="margin-bottom:5px;"><div style="font-size:11px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:2px;margin-bottom:4px;">一、分项施工进度明细清单</div>' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:8px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:3px 2px;text-align:center;width:28px;">序号</th><th style="padding:3px 2px;text-align:left;">标准施工工序内容说明</th><th style="padding:3px 2px;text-align:center;width:50px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
 
-                    if (pageCount <= 1) {
-                        // 单页
-                        const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    document.body.appendChild(part1);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    const canvas1 = await html2canvas(part1, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff'});
+                    const img1 = canvas1.toDataURL('image/jpeg', 0.9);
+                    const h1 = (canvas1.height / canvas1.width) * pdfWidth;
+                    pdf.addImage(img1, 'JPEG', 0, 0, pdfWidth, Math.min(h1, pdfHeight));
+                    document.body.removeChild(part1);
+
+                    // ===== 第二部分：其他4个区块+图片 =====
+                    const part2 = document.createElement('div');
+                    part2.style.cssText = 'width:660px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;padding:8px;';
+                    part2.innerHTML =
+                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
+                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">二、今日现场核心施工记事</div>' +
+                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + todayWork + '</div></div>' +
+                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
+                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #e74c3c;">三、现场问题与风险反馈</div>' +
+                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + issues + '</div></div>' +
+                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
+                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #1D9E75;">四、质量安全检查记录</div>' +
+                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + quality + '</div></div>' +
+                        '<div style="background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
+                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">五、施工现场实拍影像记录</div>' +
+                        '<div id="pdf-img-container" style="padding:5px;display:flex;flex-wrap:wrap;gap:3px;"></div></div>' +
+                        '<div style="padding-top:5px;border-top:1px solid #ddd;font-size:7px;color:#888;text-align:center;margin-top:5px;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>';
+
+                    // 添加图片
+                    const imgContainer = part2.querySelector('#pdf-img-container');
+                    if (imageDataUrls.length > 0) {
+                        imageDataUrls.forEach(function(dataUrl) {
+                            const img = document.createElement('img');
+                            img.src = dataUrl;
+                            img.style.cssText = 'width:65px;height:49px;object-fit:cover;border:1px solid #ccc;border-radius:2px;margin:2px;';
+                            imgContainer.appendChild(img);
+                        });
                     } else {
-                        // 多页 - 按高度切片
-                        const pageHeightPx = canvasHeight / pageCount;
-                        for (let i = 0; i < pageCount; i++) {
-                            if (i > 0) pdf.addPage();
-                            const pageCanvas = document.createElement('canvas');
-                            pageCanvas.width = canvasWidth;
-                            pageCanvas.height = pageHeightPx + 2; // 加2px避免缝隙
-                            const ctx = pageCanvas.getContext('2d');
-                            ctx.drawImage(canvas, 0, i * pageHeightPx, canvasWidth, pageHeightPx + 2, 0, 0, canvasWidth, pageHeightPx + 2);
-                            const pageImg = pageCanvas.toDataURL('image/jpeg', 0.92);
-                            pdf.addImage(pageImg, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                        }
+                        imgContainer.innerHTML = '<span style="color:#999;font-size:8px;padding:5px;">暂无上传图片</span>';
                     }
+
+                    document.body.appendChild(part2);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    const canvas2 = await html2canvas(part2, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff'});
+                    const img2 = canvas2.toDataURL('image/jpeg', 0.9);
+                    const h2 = (canvas2.height / canvas2.width) * pdfWidth;
+                    pdf.addPage();
+                    pdf.addImage(img2, 'JPEG', 0, 0, pdfWidth, Math.min(h2, pdfHeight));
+                    document.body.removeChild(part2);
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
