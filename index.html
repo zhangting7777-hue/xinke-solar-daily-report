@@ -567,11 +567,11 @@
 
         // 打开项目弹窗
         function openProjectModal(id) {
-            // 统一转为字符串处理，解决数字ID与字符串id的类型比较问题
-            editingProjectId = String(id);
             const modal = document.getElementById('project-modal');
-            const pid = String(id);
-            if (pid && pid !== 'null' && pid !== 'undefined') {
+            // 如果传入了 id，则是编辑模式；否则是添加模式
+            if (id !== undefined && id !== null) {
+                editingProjectId = String(id);
+                const pid = String(id);
                 const p = projects.find(p => String(p.id) === pid);
                 if (p) {
                     document.getElementById('modal-title').textContent = '编辑项目';
@@ -581,6 +581,8 @@
                     return;
                 }
             }
+            // 添加模式
+            editingProjectId = null;
             document.getElementById('modal-title').textContent = '添加项目';
             document.getElementById('modal-project-name').value = '';
             document.getElementById('modal-address').value = '';
@@ -813,12 +815,12 @@
                         '<div style="margin-top:15px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#888;text-align:center;">鑫科新能源 · 工程施工日报 | 福州中心：建新北路奋安中心 | 厦门中心：杏林湾运营中心</div>' +
                         '</div>';
 
-                    pdfRenderArea.style.width = '1050px';
+                    pdfRenderArea.style.width = '1200px';
 
                     await new Promise(resolve => setTimeout(resolve, 800));
 
                     const canvas = await html2canvas(pdfRenderArea, {
-                        scale: 2,
+                        scale: 4,
                         useCORS: true,
                         logging: false,
                         allowTaint: true,
@@ -836,7 +838,28 @@
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    // 计算图片实际宽高比，避免压扁
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+                    const imgAspect = canvasWidth / canvasHeight;
+                    const pdfAspect = pdfWidth / pdfHeight;
+
+                    let drawWidth, drawHeight, drawX, drawY;
+                    if (imgAspect > pdfAspect) {
+                        // 图片更宽，以宽度为准
+                        drawWidth = pdfWidth;
+                        drawHeight = pdfWidth / imgAspect;
+                        drawX = 0;
+                        drawY = (pdfHeight - drawHeight) / 2;
+                    } else {
+                        // 图片更高，以高度为准
+                        drawHeight = pdfHeight;
+                        drawWidth = pdfHeight * imgAspect;
+                        drawX = (pdfWidth - drawWidth) / 2;
+                        drawY = 0;
+                    }
+
+                    pdf.addImage(imgData, 'PNG', drawX, drawY, drawWidth, drawHeight);
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
