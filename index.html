@@ -760,9 +760,9 @@
                             statusColor = '#0C447C';
                         }
                         tableRows += '<tr>' +
-                            '<td style="text-align:center;padding:4px 3px;border:1px solid #ddd;font-size:9px;background:#f8fafc;">' + (idx + 1) + '</td>' +
-                            '<td style="padding:4px 3px;border:1px solid #ddd;font-size:9px;">' + item + '</td>' +
-                            '<td style="text-align:center;padding:4px 3px;border:1px solid #ddd;font-size:9px;color:' + statusColor + ';font-weight:bold;">' + statusText + '</td>' +
+                            '<td style="text-align:center;padding:6px 5px;border:1px solid #ddd;font-size:11px;background:#f8fafc;font-weight:700;">' + (idx + 1) + '</td>' +
+                            '<td style="padding:6px 5px;border:1px solid #ddd;font-size:11px;font-weight:500;">' + item + '</td>' +
+                            '<td style="text-align:center;padding:6px 5px;border:1px solid #ddd;font-size:11px;color:' + statusColor + ';font-weight:800;">' + statusText + '</td>' +
                             '</tr>';
                     });
 
@@ -777,36 +777,36 @@
                     }
 
                     const pdfRenderArea = document.getElementById('pdf-render-area');
-                    pdfRenderArea.innerHTML = '<div style="width:750px;min-height:1000px;padding:25px;font-family:\'Microsoft YaHei\',sans-serif;font-size:12px;color:#333;background:white;">' +
-                        '<div style="background:#0C447C;color:white;padding:18px 20px;margin:-25px -25px 12px -25px;border-radius:8px 8px 0 0;">' +
+                    pdfRenderArea.innerHTML = '<div style="width:750px;min-height:1100px;padding:30px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;">' +
+                        '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:22px 25px;margin:-30px -30px 15px -30px;border-radius:8px 8px 0 0;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                        '<div style="display:flex;align-items:center;gap:12px;">' +
-                        '<div style="background:white;color:#0C447C;padding:6px 12px;font-weight:700;border-radius:5px;font-size:14px;">XKNE</div>' +
-                        '<div><div style="font-weight:700;font-size:18px;">鑫科新能源</div><div style="font-size:11px;opacity:0.85;">分布式光伏发电项目施工进度日报</div></div>' +
+                        '<div style="display:flex;align-items:center;gap:15px;">' +
+                        '<div style="background:white;color:#0C447C;padding:8px 18px;font-weight:800;border-radius:6px;font-size:18px;letter-spacing:2px;">XKNE</div>' +
+                        '<div><div style="font-weight:800;font-size:24px;letter-spacing:1px;">鑫科新能源</div><div style="font-size:13px;opacity:0.9;font-weight:500;">分布式光伏发电项目施工进度日报</div></div>' +
                         '</div>' +
-                        '<div style="text-align:right;"><div style="font-size:20px;font-weight:700;">施工进度日报</div><div style="font-size:10px;opacity:0.85;">编号：' + basicInfo.report_no + '</div></div>' +
+                        '<div style="text-align:right;"><div style="font-size:28px;font-weight:800;letter-spacing:2px;">施工日报</div><div style="font-size:11px;opacity:0.85;font-weight:400;margin-top:4px;">编号：' + basicInfo.report_no + '</div></div>' +
                         '</div></div>' +
-                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:8px 12px;background:#f0f7ff;border-radius:6px;border-left:4px solid #1D9E75;font-size:11px;">' +
-                        '<span><span style="font-weight:700;color:#0C447C;">填报日期：</span>' + basicInfo.date + '</span>' +
-                        '<span><span style="font-weight:700;color:#0C447C;">填报人：</span>' + basicInfo.reporter + '</span>' +
-                        '<span><span style="font-weight:700;color:#0C447C;">项目进度：</span><span style="font-weight:700;color:#1D9E75;font-size:14px;">' + totalProgress + '%</span></span>' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:12px 15px;background:#f0f7ff;border-radius:8px;border-left:5px solid #1D9E75;">' +
+                        '<span style="font-size:13px;font-weight:700;color:#0C447C;">📅 填报日期：<span style="font-weight:800">' + basicInfo.date + '</span></span>' +
+                        '<span style="font-size:13px;font-weight:700;color:#0C447C;">👤 填报人：<span style="font-weight:800">' + basicInfo.reporter + '</span></span>' +
+                        '<span style="font-size:13px;font-weight:700;color:#0C447C;">📊 项目进度：<span style="font-weight:800;color:#1D9E75;font-size:18px;">' + totalProgress + '%</span></span>' +
                         '</div>' +
-                        '<div style="background:#f5f8fc;padding:10px 12px;border-radius:6px;margin-bottom:10px;font-size:11px;">' +
-                        '<div style="margin-bottom:6px;"><span style="font-weight:700;color:#0C447C;">项目名称：</span>' + basicInfo.project_name + '</div>' +
-                        '<div style="display:flex;flex-wrap:wrap;gap:15px;">' +
-                        '<span><span style="font-weight:700;color:#0C447C;">地址：</span>' + basicInfo.address + '</span>' +
-                        '<span><span style="font-weight:700;color:#0C447C;">天气：</span>' + basicInfo.weather + '</span>' +
-                        '<span><span style="font-weight:700;color:#0C447C;">人员：</span>' + basicInfo.workers + '</span>' +
+                        '<div style="background:#f5f8fc;padding:14px 16px;border-radius:8px;margin-bottom:12px;font-size:13px;">' +
+                        '<div style="margin-bottom:8px;font-weight:700;color:#0C447C;font-size:14px;">📍 项目名称：<span style="font-weight:800;color:#333;">' + basicInfo.project_name + '</span></div>' +
+                        '<div style="display:flex;flex-wrap:wrap;gap:20px;font-weight:600;color:#555;">' +
+                        '<span>🌤️ 天气：<span style="font-weight:700">' + basicInfo.weather + '</span></span>' +
+                        '<span>👷 人员：<span style="font-weight:700">' + basicInfo.workers + '</span></span>' +
+                        '<span>📍 地址：<span style="font-weight:700">' + basicInfo.address + '</span></span>' +
                         '</div></div>' +
-                        '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:4px;margin-bottom:6px;">一、分项施工进度明细清单</div>' +
-                        '<table style="width:100%;border-collapse:collapse;font-size:10px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:6px 4px;text-align:center;font-weight:600;width:35px;">序号</th><th style="padding:6px 4px;text-align:left;font-weight:600;">标准施工工序内容说明</th><th style="padding:6px 4px;text-align:center;font-weight:600;width:70px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>' +
-                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
-                        '<div><div style="font-size:12px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:4px;margin-bottom:5px;">二、今日现场核心施工记事</div><div style="background:#fafbfc;padding:10px;border-radius:6px;min-height:60px;white-space:pre-line;font-size:10px;line-height:1.7;">' + todayWork + '</div></div>' +
-                        '<div><div style="font-size:12px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:4px;margin-bottom:5px;">三、现场问题与风险反馈</div><div style="background:#fff5f5;padding:10px;border-radius:6px;min-height:60px;white-space:pre-line;font-size:10px;line-height:1.7;border-left:4px solid #e74c3c;">' + issues + '</div></div>' +
+                        '<div style="margin-bottom:12px;"><div style="font-size:15px;font-weight:800;color:#0C447C;border-bottom:3px solid #1D9E75;padding-bottom:6px;margin-bottom:8px;">一、分项施工进度明细清单</div>' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:8px 6px;text-align:center;font-weight:700;width:40px;">序号</th><th style="padding:8px 6px;text-align:left;font-weight:700;">标准施工工序内容说明</th><th style="padding:8px 6px;text-align:center;font-weight:700;width:80px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>' +
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
+                        '<div><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #1D9E75;padding-bottom:5px;margin-bottom:6px;">二、今日现场核心施工记事</div><div style="background:#fafbfc;padding:12px;border-radius:8px;min-height:70px;white-space:pre-line;font-size:12px;line-height:1.8;font-weight:500;">' + todayWork + '</div></div>' +
+                        '<div><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #e74c3c;padding-bottom:5px;margin-bottom:6px;">三、现场问题与风险反馈</div><div style="background:#fff5f5;padding:12px;border-radius:8px;min-height:70px;white-space:pre-line;font-size:12px;line-height:1.8;font-weight:500;border-left:5px solid #e74c3c;">' + issues + '</div></div>' +
                         '</div>' +
-                        '<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:4px;margin-bottom:5px;">四、质量安全检查记录</div><div style="background:#f0fff4;padding:10px;border-radius:6px;white-space:pre-line;font-size:10px;line-height:1.7;border-left:4px solid #1D9E75;">' + quality + '</div></div>' +
+                        '<div style="margin-bottom:12px;"><div style="font-size:14px;font-weight:800;color:#0C447C;border-bottom:3px solid #1D9E75;padding-bottom:5px;margin-bottom:6px;">四、质量安全检查记录</div><div style="background:#f0fff4;padding:12px;border-radius:8px;white-space:pre-line;font-size:12px;line-height:1.8;font-weight:500;border-left:5px solid #1D9E75;">' + quality + '</div></div>' +
                         imagesHTML +
-                        '<div style="margin-top:12px;padding-top:8px;border-top:1px solid #ddd;font-size:9px;color:#888;text-align:center;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
+                        '<div style="margin-top:15px;padding-top:10px;border-top:2px solid #ddd;font-size:10px;color:#888;text-align:center;font-weight:500;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>' +
                         '</div>';
 
                     pdfRenderArea.style.width = '750px';
