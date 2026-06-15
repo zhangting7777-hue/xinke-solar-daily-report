@@ -894,9 +894,28 @@
                     const canvasWidth = canvas.width;
                     const canvasHeight = canvas.height;
 
-                    // 单页充满
-                    const imgData = canvas.toDataURL('image/jpeg', 0.92);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    // 计算内容高度（像素）对应的PDF高度（mm）
+                    const contentHeightMm = (canvasHeight / canvasWidth) * pdfWidth;
+                    const pageCount = Math.ceil(contentHeightMm / pdfHeight);
+
+                    if (pageCount <= 1) {
+                        // 单页
+                        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    } else {
+                        // 多页 - 按高度切片
+                        const pageHeightPx = canvasHeight / pageCount;
+                        for (let i = 0; i < pageCount; i++) {
+                            if (i > 0) pdf.addPage();
+                            const pageCanvas = document.createElement('canvas');
+                            pageCanvas.width = canvasWidth;
+                            pageCanvas.height = pageHeightPx + 2; // 加2px避免缝隙
+                            const ctx = pageCanvas.getContext('2d');
+                            ctx.drawImage(canvas, 0, i * pageHeightPx, canvasWidth, pageHeightPx + 2, 0, 0, canvasWidth, pageHeightPx + 2);
+                            const pageImg = pageCanvas.toDataURL('image/jpeg', 0.92);
+                            pdf.addImage(pageImg, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                        }
+                    }
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
