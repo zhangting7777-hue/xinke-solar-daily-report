@@ -487,6 +487,7 @@
         let imageDataUrls = [];
         let generatedPDFBlob = null;
         let editingProjectId = null;
+        let imagesLoaded = false; // 图片是否已全部加载完成
 
         // 初始化
         function init() {
@@ -686,6 +687,7 @@
                     }
                 });
             }
+            imagesLoaded = false;
             renderImagePreview();
         };
 
@@ -693,6 +695,13 @@
             const preview = document.getElementById('image-preview');
             preview.innerHTML = '';
             imageDataUrls = [];
+            let loadedCount = 0;
+
+            if (selectedImages.length === 0) {
+                imagesLoaded = true;
+                document.getElementById('image-count').textContent = '已选择 0 张图片';
+                return;
+            }
 
             selectedImages.forEach((file, idx) => {
                 const reader = new FileReader();
@@ -703,11 +712,21 @@
                     div.innerHTML = '<img src="' + e.target.result + '">' +
                         '<button class="remove-btn" onclick="removeImage(' + idx + ')">×</button>';
                     preview.appendChild(div);
+                    loadedCount++;
+                    if (loadedCount === selectedImages.length) {
+                        imagesLoaded = true; // 所有图片加载完成
+                    }
+                };
+                reader.onerror = function() {
+                    loadedCount++;
+                    if (loadedCount === selectedImages.length) {
+                        imagesLoaded = true;
+                    }
                 };
                 reader.readAsDataURL(file);
             });
 
-            document.getElementById('image-count').textContent = '已选择 ' + selectedImages.length + ' 张图片';
+            document.getElementById('image-count').textContent = '已选择 ' + selectedImages.length + ' 张图片（加载中...）';
         }
 
         window.removeImage = function(idx) {
@@ -733,6 +752,14 @@
 
             setTimeout(async function() {
                 try {
+                    // 如果有图片但还没加载完，等待加载完成
+                    if (selectedImages.length > 0 && !imagesLoaded) {
+                        document.getElementById('image-count').textContent = '📷 等待图片加载完成...';
+                        while (!imagesLoaded) {
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                        }
+                    }
+
                     const basicInfo = {
                         date: document.getElementById('date_val').value,
                         project_name: document.getElementById('project_name').value,
@@ -860,6 +887,7 @@
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
+                    document.getElementById('image-count').textContent = '已选择 ' + selectedImages.length + ' 张图片（已加载）';
                     alert('PDF生成成功！点击"下载 PDF"按钮保存报告。');
 
                 } catch (error) {
