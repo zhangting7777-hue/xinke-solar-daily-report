@@ -789,13 +789,13 @@
                             statusColor = '#0C447C';
                         }
                         tableRows += '<tr>' +
-                            '<td style="text-align:center;padding:3px 2px;border:1px solid #ddd;font-size:8px;background:#f8fafc;font-weight:600;">' + (idx + 1) + '</td>' +
-                            '<td style="padding:3px 2px;border:1px solid #ddd;font-size:8px;">' + item + '</td>' +
-                            '<td style="text-align:center;padding:3px 2px;border:1px solid #ddd;font-size:8px;color:' + statusColor + ';font-weight:700;">' + statusText + '</td>' +
+                            '<td style="text-align:center;padding:2px 1px;border:1px solid #ddd;font-size:7px;background:#f8fafc;font-weight:600;">' + (idx + 1) + '</td>' +
+                            '<td style="padding:2px 1px;border:1px solid #ddd;font-size:7px;">' + item + '</td>' +
+                            '<td style="text-align:center;padding:2px 1px;border:1px solid #ddd;font-size:7px;color:' + statusColor + ';font-weight:700;">' + statusText + '</td>' +
                             '</tr>';
                     });
 
-                    // ===== 生成PDF - 分两部分渲染确保内容完整 =====
+                    // ===== 生成PDF - 全部内容压缩到单页 =====
 
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF({
@@ -806,74 +806,60 @@
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-                    // ===== 第一部分：头部+信息+表格 =====
-                    const part1 = document.createElement('div');
-                    part1.style.cssText = 'width:660px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;padding:8px;';
-                    part1.innerHTML =
-                        '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:10px 12px;margin-bottom:6px;border-radius:4px;">' +
+                    // ===== 全部内容渲染为一张图 =====
+                    const allContent = document.createElement('div');
+                    allContent.style.cssText = 'width:640px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;padding:6px;';
+                    allContent.innerHTML =
+                        '<div style="background:linear-gradient(135deg,#0C447C 0%,#1a5a9a 100%);color:white;padding:8px 10px;margin-bottom:4px;border-radius:3px;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                        '<div style="display:flex;align-items:center;gap:8px;">' +
-                        '<div style="background:white;color:#0C447C;padding:3px 8px;font-weight:800;border-radius:3px;font-size:11px;letter-spacing:1px;">XKNE</div>' +
-                        '<div><div style="font-weight:800;font-size:14px;letter-spacing:1px;">鑫科新能源</div><div style="font-size:9px;opacity:0.9;">分布式光伏发电项目施工日报</div></div>' +
+                        '<div style="display:flex;align-items:center;gap:6px;">' +
+                        '<div style="background:white;color:#0C447C;padding:2px 6px;font-weight:800;border-radius:2px;font-size:10px;letter-spacing:1px;">XKNE</div>' +
+                        '<div><div style="font-weight:800;font-size:13px;letter-spacing:1px;">鑫科新能源</div><div style="font-size:8px;opacity:0.9;">分布式光伏发电项目施工日报</div></div>' +
                         '</div>' +
-                        '<div style="text-align:right;"><div style="font-size:17px;font-weight:800;letter-spacing:2px;">施工日报</div><div style="font-size:8px;opacity:0.85;margin-top:2px;">编号：' + basicInfo.report_no + '</div></div>' +
+                        '<div style="text-align:right;"><div style="font-size:15px;font-weight:800;letter-spacing:2px;">施工日报</div><div style="font-size:7px;opacity:0.85;margin-top:1px;">编号：' + basicInfo.report_no + '</div></div>' +
                         '</div></div>' +
-                        '<div style="display:flex;justify-content:space-between;margin-bottom:5px;padding:4px 8px;background:#f0f7ff;border-radius:4px;border-left:3px solid #1D9E75;font-size:9px;font-weight:600;color:#0C447C;">' +
+                        '<div style="display:flex;justify-content:space-between;margin-bottom:4px;padding:3px 6px;background:#f0f7ff;border-radius:3px;border-left:2px solid #1D9E75;font-size:8px;font-weight:600;color:#0C447C;">' +
                         '<span>填报日期：' + basicInfo.date + '</span><span>填报人：' + basicInfo.reporter + '</span><span>进度：<span style="font-weight:800;color:#1D9E75;">' + totalProgress + '%</span></span></div>' +
-                        '<div style="background:#f5f8fc;padding:5px 8px;border-radius:4px;margin-bottom:5px;font-size:9px;">' +
-                        '<div style="font-weight:700;color:#0C447C;margin-bottom:2px;">项目：' + basicInfo.project_name + '</div>' +
-                        '<div style="display:flex;gap:10px;color:#555;">' +
+                        '<div style="background:#f5f8fc;padding:4px 6px;border-radius:3px;margin-bottom:4px;font-size:8px;">' +
+                        '<div style="font-weight:700;color:#0C447C;margin-bottom:1px;">项目：' + basicInfo.project_name + '</div>' +
+                        '<div style="display:flex;gap:8px;color:#555;">' +
                         '<span>天气：' + basicInfo.weather + '</span><span>人员：' + basicInfo.workers + '</span><span>地址：' + basicInfo.address + '</span></div></div>' +
-                        '<div style="margin-bottom:5px;"><div style="font-size:11px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:2px;margin-bottom:4px;">一、分项施工进度明细清单</div>' +
-                        '<table style="width:100%;border-collapse:collapse;font-size:8px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:3px 2px;text-align:center;width:28px;">序号</th><th style="padding:3px 2px;text-align:left;">标准施工工序内容说明</th><th style="padding:3px 2px;text-align:center;width:50px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
-
-                    document.body.appendChild(part1);
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-                    const canvas1 = await html2canvas(part1, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff'});
-                    const img1 = canvas1.toDataURL('image/jpeg', 0.9);
-                    const h1 = (canvas1.height / canvas1.width) * pdfWidth;
-                    pdf.addImage(img1, 'JPEG', 0, 0, pdfWidth, Math.min(h1, pdfHeight));
-                    document.body.removeChild(part1);
-
-                    // ===== 第二部分：其他4个区块+图片 =====
-                    const part2 = document.createElement('div');
-                    part2.style.cssText = 'width:660px;font-family:\'Microsoft YaHei\',sans-serif;color:#333;background:white;padding:8px;';
-                    part2.innerHTML =
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">二、今日现场核心施工记事</div>' +
-                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + todayWork + '</div></div>' +
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #e74c3c;">三、现场问题与风险反馈</div>' +
-                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + issues + '</div></div>' +
-                        '<div style="margin-bottom:5px;background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:3px solid #1D9E75;">四、质量安全检查记录</div>' +
-                        '<div style="padding:5px;font-size:8px;line-height:1.4;white-space:pre-line;">' + quality + '</div></div>' +
-                        '<div style="background:#fff;border:1px solid #e0e7ee;border-radius:4px;overflow:hidden;">' +
-                        '<div style="font-size:10px;font-weight:700;color:#0C447C;padding:4px 6px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">五、施工现场实拍影像记录</div>' +
-                        '<div id="pdf-img-container" style="padding:5px;display:flex;flex-wrap:wrap;gap:3px;"></div></div>' +
-                        '<div style="padding-top:5px;border-top:1px solid #ddd;font-size:7px;color:#888;text-align:center;margin-top:5px;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>';
+                        '<div style="margin-bottom:4px;"><div style="font-size:10px;font-weight:700;color:#0C447C;border-bottom:2px solid #1D9E75;padding-bottom:1px;margin-bottom:3px;">一、分项施工进度明细清单</div>' +
+                        '<table style="width:100%;border-collapse:collapse;font-size:7px;"><thead><tr style="background:#0C447C;color:white;"><th style="padding:2px 1px;text-align:center;width:25px;">序号</th><th style="padding:2px 1px;text-align:left;">标准施工工序内容说明</th><th style="padding:2px 1px;text-align:center;width:45px;">当前进度</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>' +
+                        '<div style="margin-bottom:4px;background:#fff;border:1px solid #e0e7ee;border-radius:3px;overflow:hidden;">' +
+                        '<div style="font-size:9px;font-weight:700;color:#0C447C;padding:3px 5px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">二、今日现场核心施工记事</div>' +
+                        '<div style="padding:4px;font-size:7px;line-height:1.3;white-space:pre-line;">' + todayWork + '</div></div>' +
+                        '<div style="margin-bottom:4px;background:#fff;border:1px solid #e0e7ee;border-radius:3px;overflow:hidden;">' +
+                        '<div style="font-size:9px;font-weight:700;color:#0C447C;padding:3px 5px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:2px solid #e74c3c;">三、现场问题与风险反馈</div>' +
+                        '<div style="padding:4px;font-size:7px;line-height:1.3;white-space:pre-line;">' + issues + '</div></div>' +
+                        '<div style="margin-bottom:4px;background:#fff;border:1px solid #e0e7ee;border-radius:3px;overflow:hidden;">' +
+                        '<div style="font-size:9px;font-weight:700;color:#0C447C;padding:3px 5px;border-bottom:1px solid #e0e7ee;background:#f8fafc;border-left:2px solid #1D9E75;">四、质量安全检查记录</div>' +
+                        '<div style="padding:4px;font-size:7px;line-height:1.3;white-space:pre-line;">' + quality + '</div></div>' +
+                        '<div style="background:#fff;border:1px solid #e0e7ee;border-radius:3px;overflow:hidden;">' +
+                        '<div style="font-size:9px;font-weight:700;color:#0C447C;padding:3px 5px;border-bottom:1px solid #e0e7ee;background:#f8fafc;">五、施工现场实拍影像记录</div>' +
+                        '<div id="pdf-img-container" style="padding:4px;display:flex;flex-wrap:wrap;gap:2px;"></div></div>' +
+                        '<div style="padding-top:4px;border-top:1px solid #ddd;font-size:6px;color:#888;text-align:center;margin-top:4px;">鑫科新能源 · 工程施工日报 | 福州：建新北路奋安中心 | 厦门：杏林湾运营中心</div>';
 
                     // 添加图片
-                    const imgContainer = part2.querySelector('#pdf-img-container');
+                    const imgContainer = allContent.querySelector('#pdf-img-container');
                     if (imageDataUrls.length > 0) {
                         imageDataUrls.forEach(function(dataUrl) {
                             const img = document.createElement('img');
                             img.src = dataUrl;
-                            img.style.cssText = 'width:65px;height:49px;object-fit:cover;border:1px solid #ccc;border-radius:2px;margin:2px;';
+                            img.style.cssText = 'width:58px;height:44px;object-fit:cover;border:1px solid #ccc;border-radius:2px;margin:1px;';
                             imgContainer.appendChild(img);
                         });
                     } else {
-                        imgContainer.innerHTML = '<span style="color:#999;font-size:8px;padding:5px;">暂无上传图片</span>';
+                        imgContainer.innerHTML = '<span style="color:#999;font-size:7px;padding:4px;">暂无上传图片</span>';
                     }
 
-                    document.body.appendChild(part2);
+                    document.body.appendChild(allContent);
                     await new Promise(resolve => setTimeout(resolve, 1500));
-                    const canvas2 = await html2canvas(part2, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff'});
-                    const img2 = canvas2.toDataURL('image/jpeg', 0.9);
-                    const h2 = (canvas2.height / canvas2.width) * pdfWidth;
-                    pdf.addPage();
-                    pdf.addImage(img2, 'JPEG', 0, 0, pdfWidth, Math.min(h2, pdfHeight));
-                    document.body.removeChild(part2);
+                    const canvas = await html2canvas(allContent, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#ffffff'});
+                    const img = canvas.toDataURL('image/jpeg', 0.92);
+                    const h = (canvas.height / canvas.width) * pdfWidth;
+                    pdf.addImage(img, 'JPEG', 0, 0, pdfWidth, Math.min(h, pdfHeight));
+                    document.body.removeChild(allContent);
 
                     generatedPDFBlob = pdf.output('blob');
                     document.getElementById('download-btn').style.display = 'block';
