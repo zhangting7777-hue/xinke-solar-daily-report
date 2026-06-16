@@ -912,7 +912,15 @@
         </div>
     </div>
 
-    <!-- PDF预览区域 -->
+
+    <!-- PDF渲染容器（隐藏，固定794px宽=A4比例，截图用） -->
+    <div id="pdf-render-wrap" style="position:fixed; left:-9999px; top:0; width:794px; background:#fff; z-index:-1;">
+        <div id="pdf-render-target" style="width:794px; padding:40px; font-family:'Microsoft YaHei','PingFang SC','Noto Sans CJK SC',sans-serif; font-size:14px; color:#2c3e50; background:#fff; box-sizing:border-box;">
+            <!-- 动态生成内容 -->
+        </div>
+    </div>
+
+    <!-- PDF预览区域（页面内可见） -->
     <div class="container" id="pdf-preview">
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #0c3b5f; font-size: 24px; margin-bottom: 10px;">光伏项目施工日报</h1>
@@ -986,7 +994,6 @@
             </div>
         </div>
         
-        <!-- 关键修改：移除签字部分，只保留日期 -->
         <div class="pdf-section">
             <h2>六、现场施工照片</h2>
             <div class="pdf-images-grid" id="pdf-preview-images">
@@ -1425,127 +1432,236 @@
             });
         }
 
-        // ================== PDF生成（完全修复版）==================
-        function generatePDF() {
-            if (!validateForm()) {
-                return;
+        // ================== PDF生成（html2canvas固定宽度版，完美中文支持）==================
+        function buildPDFHTML() {
+            const dateVal = document.getElementById('date').value;
+            const [yr, mo, da] = dateVal ? dateVal.split('-') : ['—','—','—'];
+            const project  = document.getElementById('project-select').selectedOptions[0]?.text || '—';
+            const address  = document.getElementById('address').value || '—';
+            const weather  = document.getElementById('weather').value || '—';
+            const workers  = document.getElementById('workers').value || '—';
+            const reporter = document.getElementById('reporter').value || '—';
+            const reportNo = document.getElementById('report-no').value || '—';
+            const todayWork= document.getElementById('today-work').value || '无施工内容记录';
+            const issues   = document.getElementById('issues').value || '无问题反馈';
+            const quality  = document.getElementById('quality-check').value || '无质量检查记录';
+            const avg = Math.round(state.progressValues.reduce((a,b)=>a+b,0) / state.progressValues.length);
+
+            // 工序表格行
+            const stepRows = CONFIG.workSteps.map((step, i) => {
+                const val = state.progressValues[i] || 0;
+                const barColor = val >= 100 ? '#27ae60' : val > 0 ? '#3498db' : '#ccc';
+                return `<tr style="background:${i%2===1?'#f8fbff':'#fff'}">
+                    <td style="padding:7px 8px;border:1px solid #dde6f0;text-align:center;font-size:12px;">${i+1}</td>
+                    <td style="padding:7px 8px;border:1px solid #dde6f0;font-size:12px;">${step}</td>
+                    <td style="padding:7px 12px;border:1px solid #dde6f0;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="flex:1;height:6px;background:#e9ecef;border-radius:3px;overflow:hidden;">
+                                <div style="width:${val}%;height:100%;background:${barColor};border-radius:3px;"></div>
+                            </div>
+                            <span style="font-size:12px;font-weight:700;color:${barColor};min-width:32px;text-align:right;">${val}%</span>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // 照片
+            let photosHTML = '';
+            if (state.selectedImages.length > 0) {
+                const photoItems = state.selectedImages.map((img, i) =>
+                    `<div style="width:calc(50% - 8px);margin-bottom:12px;border:1px solid #dde6f0;border-radius:6px;overflow:hidden;">
+                        <img src="${img.preview}" style="width:100%;height:200px;object-fit:cover;display:block;">
+                        <div style="text-align:center;font-size:11px;color:#7f8c8d;padding:4px 0;">照片 ${i+1}</div>
+                    </div>`
+                ).join('');
+                photosHTML = `<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;">${photoItems}</div>`;
+            } else {
+                photosHTML = '<div style="color:#7f8c8d;padding:15px;text-align:center;font-size:13px;">无施工照片</div>';
             }
+
+            return `
+            <div style="font-family:'Microsoft YaHei','PingFang SC','Noto Sans SC',sans-serif;color:#2c3e50;background:#fff;">
+                <!-- 标题 -->
+                <div style="background:linear-gradient(135deg,#0c3b5f,#1a5c8c);padding:28px 40px;text-align:center;border-radius:0 0 8px 8px;margin-bottom:28px;">
+                    <div style="color:#fff;font-size:22px;font-weight:700;margin-bottom:6px;">光伏项目施工日报</div>
+                    <div style="color:rgba(200,220,255,0.9);font-size:12px;letter-spacing:3px;margin-bottom:4px;">鑫科新能源 · XINKE NEW ENERGY</div>
+                    <div style="color:rgba(200,220,255,0.85);font-size:13px;">填报日期：${yr}年${mo}月${da}日</div>
+                </div>
+
+                <!-- 一、基础台账 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">一、基础台账信息</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:14px;"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        ${[['项目名称',project],['工程地址',address],['天气情况',weather],['施工人员',workers],['填报人',reporter],['报告编号',reportNo]].map(([k,v])=>
+                            `<div style="width:calc(50% - 5px);background:#f8fbff;border:1px solid #dde6f0;border-radius:6px;padding:10px 12px;box-sizing:border-box;">
+                                <div style="font-size:11px;font-weight:700;color:#0c3b5f;margin-bottom:4px;">${k}：</div>
+                                <div style="font-size:13px;color:#2c3e50;">${v}</div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+
+                <!-- 二、工序节点 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">二、14项标准施工工序节点</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:10px;"></div>
+                    <div style="font-size:12px;color:#7f8c8d;margin-bottom:10px;">项目整体完成率：<span style="color:#e74c3c;font-weight:700;font-size:14px;">${avg}%</span></div>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#0c3b5f;">
+                                <th style="padding:8px;border:1px solid #0c3b5f;color:#fff;font-size:12px;width:8%;text-align:center;">序号</th>
+                                <th style="padding:8px;border:1px solid #0c3b5f;color:#fff;font-size:12px;width:55%;text-align:left;">工序名称</th>
+                                <th style="padding:8px;border:1px solid #0c3b5f;color:#fff;font-size:12px;width:37%;text-align:left;">完成度</th>
+                            </tr>
+                        </thead>
+                        <tbody>${stepRows}</tbody>
+                    </table>
+                </div>
+
+                <!-- 三 施工记事 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">三、今日核心施工记事</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:10px;"></div>
+                    <div style="background:#f8f9fa;border:1px solid #dde6f0;border-radius:6px;padding:14px;font-size:13px;line-height:1.8;white-space:pre-wrap;">${todayWork}</div>
+                </div>
+
+                <!-- 四 问题反馈 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">四、现场问题与风险反馈</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:10px;"></div>
+                    <div style="background:#f8f9fa;border:1px solid #dde6f0;border-radius:6px;padding:14px;font-size:13px;line-height:1.8;white-space:pre-wrap;">${issues}</div>
+                </div>
+
+                <!-- 五 质量检查 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">五、质量安全检查记录</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:10px;"></div>
+                    <div style="background:#f8f9fa;border:1px solid #dde6f0;border-radius:6px;padding:14px;font-size:13px;line-height:1.8;white-space:pre-wrap;">${quality}</div>
+                </div>
+
+                <!-- 六 照片 -->
+                <div style="margin-bottom:24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                        <div style="width:4px;height:18px;background:#1a8cff;border-radius:2px;"></div>
+                        <div style="font-size:15px;font-weight:700;color:#0c3b5f;">六、现场施工照片</div>
+                    </div>
+                    <div style="border-bottom:2px solid #3498db;margin-bottom:10px;"></div>
+                    ${photosHTML}
+                </div>
+
+                <!-- 底部 -->
+                <div style="border-top:1px solid #dde6f0;padding-top:12px;display:flex;justify-content:space-between;font-size:11px;color:#7f8c8d;">
+                    <span>报告编号：${reportNo}</span>
+                    <span>填报人：${reporter}</span>
+                    <span>${yr}年${mo}月${da}日</span>
+                </div>
+            </div>`;
+        }
+
+        function generatePDF() {
+            if (!validateForm()) return;
             
-            // 显示加载遮罩
             document.getElementById('loading-overlay').style.display = 'flex';
             
-            // 先更新PDF预览内容
-            updatePDFPreviewContent();
-            
-            // 使用setTimeout确保DOM更新完成
             setTimeout(() => {
-                // 获取PDF内容区域
-                const pdfElement = document.getElementById('pdf-preview');
+                // 把生成的HTML写入隐藏的固定宽度容器
+                const renderTarget = document.getElementById('pdf-render-target');
+                renderTarget.innerHTML = buildPDFHTML();
                 
-                // 配置html2canvas
-                const options = {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    width: pdfElement.offsetWidth,
-                    windowWidth: pdfElement.offsetWidth,
-                    backgroundColor: '#ffffff'
-                };
+                // 等待图片加载完成
+                const images = renderTarget.querySelectorAll('img');
+                const imagePromises = Array.from(images).map(img => 
+                    new Promise(resolve => {
+                        if (img.complete) resolve();
+                        else { img.onload = resolve; img.onerror = resolve; }
+                    })
+                );
                 
-                // 使用html2canvas渲染PDF内容
-                html2canvas(pdfElement, options).then(canvas => {
-                    try {
-                        // 创建jsPDF实例
-                        const { jsPDF } = window.jspdf;
-                        const pdf = new jsPDF({
-                            orientation: 'portrait',
-                            unit: 'mm',
-                            format: 'a4'
-                        });
-                        
-                        // 将canvas转换为图片
-                        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                        
-                        // 获取PDF页面尺寸
-                        const imgWidth = 210; // A4宽度
-                        const pageHeight = 297; // A4高度
-                        
-                        // 计算图片高度以保持比例
-                        const imgHeight = canvas.height * imgWidth / canvas.width;
-                        
-                        // 计算需要多少页
-                        const pages = Math.ceil(imgHeight / pageHeight);
-                        
-                        // 添加每一页
-                        for (let i = 0; i < pages; i++) {
-                            if (i > 0) {
-                                pdf.addPage();
+                Promise.all(imagePromises).then(() => {
+                    // 固定794px宽截图，scale=2保证清晰度
+                    html2canvas(renderTarget, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        logging: false,
+                        width: 794,
+                        windowWidth: 794,
+                        backgroundColor: '#ffffff'
+                    }).then(canvas => {
+                        try {
+                            const { jsPDF } = window.jspdf;
+                            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                            
+                            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                            const imgWidth = 210;  // A4宽mm
+                            const pageHeight = 297; // A4高mm
+                            // canvas像素 → mm: canvas.width/2 = 794px物理宽，对应210mm
+                            const imgHeight = canvas.height * imgWidth / canvas.width;
+                            
+                            let pos = 0;
+                            let remaining = imgHeight;
+                            let first = true;
+                            
+                            while (remaining > 0) {
+                                if (!first) pdf.addPage();
+                                first = false;
+                                const sliceH = Math.min(pageHeight, remaining);
+                                pdf.addImage(imgData, 'JPEG', 0, -pos, imgWidth, imgHeight);
+                                pos += pageHeight;
+                                remaining -= pageHeight;
                             }
                             
-                            // 计算当前页要绘制的图片部分
-                            const startY = i * pageHeight;
-                            const clipHeight = Math.min(pageHeight, imgHeight - startY);
+                            const pdfBlob = pdf.output('blob');
+                            state.pdfBlob = pdfBlob;
+                            document.getElementById('loading-overlay').style.display = 'none';
                             
-                            // 绘制图片
-                            pdf.addImage(
-                                imgData,
-                                'JPEG',
-                                0,
-                                -startY,
-                                imgWidth,
-                                imgHeight,
-                                undefined,
-                                'FAST'
-                            );
-                        }
-                        
-                        // 修复：使用兼容的方式获取Blob
-                        const pdfBlob = pdf.output('blob');
-                        state.pdfBlob = pdfBlob;
-                        
-                        // 隐藏加载遮罩
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        
-                        const fileName = `${document.getElementById('project-select').selectedOptions[0]?.text || '光伏日报'}_${document.getElementById('date').value}.pdf`;
-                        const downloadUrl = URL.createObjectURL(pdfBlob);
-                        
-                        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-                        const isAndroid = /Android/i.test(navigator.userAgent);
-                        
-                        if (isIOS) {
-                            // iOS：在新标签页打开PDF，用户可长按保存或分享
-                            const newTab = window.open(downloadUrl, '_blank');
-                            if (!newTab) {
-                                // 弹窗被拦截时降级处理
-                                showIOSDownloadTip(downloadUrl, fileName);
+                            const dateVal = document.getElementById('date').value;
+                            const projName = document.getElementById('project-select').selectedOptions[0]?.text || '光伏日报';
+                            const fileName = `${projName}_${dateVal}.pdf`;
+                            const downloadUrl = URL.createObjectURL(pdfBlob);
+                            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                            
+                            if (isIOS) {
+                                const newTab = window.open(downloadUrl, '_blank');
+                                if (!newTab) showIOSDownloadTip(downloadUrl, fileName);
+                                else updateStatusMessage('✅ PDF已在新标签页打开，请点击分享按钮保存');
                             } else {
-                                updateStatusMessage('✅ PDF已在新标签页打开，请点击右上角分享按钮保存');
+                                const link = document.createElement('a');
+                                link.href = downloadUrl;
+                                link.download = fileName;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                updateStatusMessage('✅ PDF已生成下载成功！');
                             }
-                        } else {
-                            // Android和其他设备：直接下载
-                            const link = document.createElement('a');
-                            link.href = downloadUrl;
-                            link.download = fileName;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            updateStatusMessage('✅ PDF文件生成并下载成功！');
+                            setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
+                            
+                        } catch (error) {
+                            document.getElementById('loading-overlay').style.display = 'none';
+                            alert('PDF生成失败：' + error.message);
                         }
-                        
-                        // 清理URL对象
-                        setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
-                        
-                    } catch (error) {
-                        console.error('PDF生成失败:', error);
+                    }).catch(err => {
                         document.getElementById('loading-overlay').style.display = 'none';
-                        alert('PDF生成失败：' + error.message + '\n\n请尝试以下方法：\n1. 刷新页面重新操作\n2. 使用最新版本的Chrome或Edge浏览器\n3. 如果是手机端，请尝试在电脑上操作');
-                    }
-                }).catch(error => {
-                    console.error('HTML2Canvas渲染失败:', error);
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    alert('PDF预览渲染失败：' + error.message + '\n\n请确保网络连接正常，并尝试刷新页面');
+                        alert('渲染失败，请刷新重试：' + err.message);
+                    });
                 });
-            }, 100);
+            }, 200);
         }
 
         // ================== iOS下载提示 ==================
